@@ -20,4 +20,9 @@ public class MainActivity extends AppCompatActivity {
     void onClickNumeric() {
         startActivity(new Intent(this, NumericKeypadActivity.class));
     }
+
+    @OnClick(R.id.main_btn_pin)
+    void onClickPin() {
+        startActivity(new Intent(this, PinEntryActivity.class));
+    }
 }

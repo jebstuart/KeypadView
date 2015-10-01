@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <declare-styleable name="KeypadView">
+        <attr name="field" format="reference" />
+    </declare-styleable>
     <declare-styleable name="KeypadButton">
         <attr name="action">
             <enum name="insert" value="0" />

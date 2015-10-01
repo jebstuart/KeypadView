@@ -2,16 +2,51 @@ package com.jebware.keypadview;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 
 /**
+ * A KeypadView is a ViewGroup that can be added into an Android layout to be used as a keyboard
+ * instead of a normal Android virtual keyboard (IME).  This is beneficial if you don't want your
+ * layout to be resized or obscured by the virtual keyboard, or if you want very tight control
+ * over exactly what the keyboard will look like.
+ *
+ * You need to provide the keypad's layout, as it doesn't provide its own.
+ * See {@link com.jebware.keypadview.R.layout.numeric_keypad} for an example, or include it directly
+ * if that's the keypad you want.
+ *
+ * For the KeypadView to work, it needs to know what EditText it should edit.  You can provide this
+ * in any of the following ways:
+ * - in the XML layout, by setting the app:field property on the KeypadView:
+ * {@code
+ * <EditText
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="96dp"
+    android:background="#FFFFFF"
+    />
+
+    <com.jebware.keypadview.KeypadView
+    android:id="@+id/kpv_keypad"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    app:field="@android:id/text1"
+    >
+ * }
+ * - in code, by calling {@link KeypadView#setField(EditText)}
+ * - in code, by calling {@link KeypadView#setContainer(KeypadContainer)}
+ *
+
+ *
  * Created by Jeb Ware on 9/1/15.
  * (c) 2015
  */
@@ -19,13 +54,21 @@ public class KeypadView extends FrameLayout {
 
     private static final String TAG = "NumericKeypad";
 
-    public interface NumericKeypadContainer {
+    /**
+     * A KeypadContainer provides the EditText that should be edited.
+     *
+     * getActiveField will be called every time a button is pressed.
+     */
+    public interface KeypadContainer {
         @Nullable
         EditText getActiveField();
     }
 
+    private int fieldId = -1;
     @Nullable
-    private NumericKeypadContainer container;
+    private EditText field;
+    @Nullable
+    private KeypadContainer container;
 
     public KeypadView(Context context) {
         super(context);
@@ -50,10 +93,28 @@ public class KeypadView extends FrameLayout {
     }
 
     private void init(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        if (attrs != null) {
+            TypedArray a = context.getTheme().obtainStyledAttributes(
+                    attrs,
+                    R.styleable.KeypadView,
+                    defStyleAttr,
+                    defStyleRes);
+            fieldId = a.getResourceId(R.styleable.KeypadView_field, -1);
+            a.recycle();
+        }
         initView(this);
     }
 
-    public void setContainer(@Nullable NumericKeypadContainer container) {
+    @Nullable
+    public EditText getField() {
+        return field;
+    }
+
+    public void setField(@Nullable EditText field) {
+        this.field = field;
+    }
+
+    public void setContainer(@Nullable KeypadContainer container) {
         this.container = container;
     }
 
@@ -101,6 +162,10 @@ public class KeypadView extends FrameLayout {
         return result;
     }
 
+    /**
+     * Ensure that this view, and any children will call didTapButtonListener
+     * @param view the view on which we want to add the listener
+     */
     private void initView(View view) {
         if (view instanceof ViewGroup) {
             for (int i=0; i<((ViewGroup) view).getChildCount(); i++) {
@@ -134,11 +199,7 @@ public class KeypadView extends FrameLayout {
     };
 
     private void insertRadix(CharSequence radix) {
-        if (container == null) {
-            Log.w(TAG, "No container set on NumericKeypad.  Call setContainer() if you want this keypad to do anything.");
-            return;
-        }
-        EditText field = container.getActiveField();
+        EditText field = getActiveField();
         if (field == null) {
             //No active field.
             return;
@@ -156,11 +217,7 @@ public class KeypadView extends FrameLayout {
     }
 
     private void insertText(CharSequence c) {
-        if (container == null) {
-            Log.w(TAG, "No container set on NumericKeypad.  Call setContainer() if you want this keypad to do anything.");
-            return;
-        }
-        EditText field = container.getActiveField();
+        EditText field = getActiveField();
         if (field == null) {
             //No active field.
             return;
@@ -174,15 +231,12 @@ public class KeypadView extends FrameLayout {
     }
 
     private void doBackspace() {
-        if (container == null) {
-            Log.w(TAG, "No container set on NumericKeypad.  Call setContainer() if you want this keypad to do anything.");
-            return;
-        }
-        EditText field = container.getActiveField();
+        EditText field = getActiveField();
         if (field == null) {
             //No active field.
             return;
         }
+        field.getText();
 
         if (field.getSelectionEnd() > 0) {
             //remove a character before the cursor
@@ -190,9 +244,27 @@ public class KeypadView extends FrameLayout {
         } // else NOOP, cursor is at the beginning, can't backspace
     }
 
-    //TODO remove me? - automatically search up the hierarchy and find a view in focus?
+    @Nullable
     private EditText getActiveField() {
-        return container.getActiveField();
+        if (field == null && fieldId != -1) { //search for an EditText with this id
+            ViewParent p = getParent();
+            while (field == null && p != null) {
+                if (p instanceof View) {
+                    field = (EditText) ((View) p).findViewById(fieldId);
+                }
+                p = p.getParent();
+            }
+        }
+
+        if (field != null) {
+            return field;
+        }
+
+        if (container != null) {
+            return container.getActiveField();
+        }
+        Log.w(TAG, "KeypadView doesn't know where to send characters.  Call setContainer() or setField() or set the \"field\" XML property");
+        return null;
     }
 
 }

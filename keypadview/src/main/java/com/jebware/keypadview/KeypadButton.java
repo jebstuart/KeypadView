@@ -9,6 +9,20 @@ import android.util.AttributeSet;
 import android.widget.Button;
 
 /**
+ * KeypadButton is a simple implementation of KeypadKey.  By default, it's {@link Action}
+ * is Insert and getText() returns the text of the button, so it will insert whatever text
+ * it's displaying.
+ *
+ * Action can be overridden in XML like this
+ * {@code
+ * app:action="delete"
+ * }
+ *
+ * or in code like this:
+ * {@code
+ * myKeypadButton.setAction(Action.Radix);
+ * }
+ *
  * Created by Jeb Ware on 9/30/15.
  * (c) 2015
  */
