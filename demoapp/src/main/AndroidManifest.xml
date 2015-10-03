@@ -16,7 +16,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".NumericKeypadActivity" >
+        <activity android:name=".GenericKeypadActivity" >
         </activity>
 
         <activity android:name=".PinEntryActivity"

@@ -18,11 +18,15 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.main_btn_numeric)
     void onClickNumeric() {
-        startActivity(new Intent(this, NumericKeypadActivity.class));
+        Intent intent = new Intent(this, GenericKeypadActivity.class)
+                .putExtra(GenericKeypadActivity.EXTRA_KEYPAD_LAYOUT_RESOURCE_ID, R.layout.kpv_numeric_keypad);
+        startActivity(intent);
     }
 
-    @OnClick(R.id.main_btn_pin)
+    @OnClick(R.id.main_btn_telephone)
     void onClickPin() {
-        startActivity(new Intent(this, PinEntryActivity.class));
+        Intent intent = new Intent(this, GenericKeypadActivity.class)
+                .putExtra(GenericKeypadActivity.EXTRA_KEYPAD_LAYOUT_RESOURCE_ID, R.layout.kpv_telephone_keypad);
+        startActivity(intent);
     }
 }

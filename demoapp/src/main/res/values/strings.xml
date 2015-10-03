@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">KeypadView</string>
-    <string name="btn_numeric">Numeric Keypad (ATM-style)</string>
+    <string name="btn_numeric">Numeric Keypad</string>
+    <string name="btn_telephone">Telephone Keypad</string>
 </resources>
